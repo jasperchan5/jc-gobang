@@ -8,8 +8,8 @@ class Gobang:
         self.court = np.empty((15,15),dtype=object)
         self.gameScreen = 0
         self.backgroundColor = (114,167,233,0.5)
-    def initGame(self,resolution): # Create a blank game interface
 
+    def initGame(self,resolution): # Create a blank game interface
         # Create screen
         gameScreen = pygame.display.set_mode(resolution)
         pygame.display.set_caption("Gobang")
@@ -28,19 +28,12 @@ class Gobang:
         return gameScreen
     
     def displayChess(self,gameScreen,pos,color):
-
         # Adjust location
         if pos[0] >= 85 and pos [0] < 535 and pos[1] >= 85 and pos[1] < 535:
             posList = [pos[0],pos[1]]
             coord = self.posAdjustment(posList)
             pos = (posList[0],posList[1])
 
-            pygame.draw.rect(gameScreen, self.backgroundColor, pygame.Rect(500,10,180,60))
-            posText = pygame.font.SysFont(None, 60)
-            tempStr = ""
-            tempStr += str(coord[0]) + "," + str(coord[1])
-            renderedTitle = posText.render(tempStr,True,(0,0,0))
-            gameScreen.blit(renderedTitle,(500,10))
 
             # Display chess
             newChess = Chess(gameScreen,pos,color)
@@ -67,31 +60,97 @@ class Gobang:
         # Case column
         for i in range(0,15):
             blackWinCnt = 0
+            whiteWinCount = 0
             for j in range(0,15):
-                try:
-                    if self.court[i][j] == 1:
-                        blackWinCnt += 1
-                    else: 
-                        blackWinCnt = 0
-                    if blackWinCnt == 5:
-                        return "Black wins"
-                except:
-                    return "Nothing"
+                if self.court[j][i] == 1:
+                    blackWinCnt += 1
+                    whiteWinCount = 0
+                elif self.court[j][i] == 0:
+                    whiteWinCount += 1
+                    blackWinCnt = 0
+                else: 
+                    whiteWinCount = 0
+                    blackWinCnt = 0
+                if blackWinCnt == 5:
+                    return "Black wins"
+                elif whiteWinCount == 5:
+                    return "White wins"
+                
         # Case row
         for i in range(0,15):
             blackWinCnt = 0
+            whiteWinCount = 0
             for j in range(0,15):
-                try:
-                    if self.court[j][i] == 1:
-                        blackWinCnt += 1
-                    else: 
-                        blackWinCnt = 0
-                    if blackWinCnt == 5:
-                        return "Black wins"
-                except:
-                    return "Nothing"
+                if self.court[i][j] == 1:
+                    blackWinCnt += 1
+                    whiteWinCount = 0
+                elif self.court[i][j] == 0:
+                    whiteWinCount += 1
+                    blackWinCnt = 0
+                else: 
+                    whiteWinCount = 0
+                    blackWinCnt = 0
+                if blackWinCnt == 5:
+                    return "Black wins"
+                elif whiteWinCount == 5:
+                    return "White wins"
         # Case slant
-
+        for i in range(0,15):
+            blackWinCnt = 0
+            whiteWinCount = 0
+            for j in range(0,15):
+                temp = i
+                if self.court[i][j] == 1:
+                    blackWinCnt += 1
+                    whiteWinCount = 0
+                    if i < 15:
+                        i += 1
+                    elif i == 14 and blackWinCnt < 5:
+                        return "Nothing"
+                elif self.court[i][j] == 0:
+                    whiteWinCount += 1
+                    blackWinCnt = 0
+                    if i < 15:
+                        i += 1
+                    elif i ==14 and whiteWinCount < 5:
+                        return "Nothing"
+                else: 
+                    blackWinCnt = 0
+                    whiteWinCount = 0
+                if blackWinCnt == 5:
+                    return "Black wins"
+                elif whiteWinCount == 5:
+                    return "White wins"
+                i = temp
+                    
+        for i in range(0,15):
+            blackWinCnt = 0
+            whiteWinCount = 0
+            for j in range(0,15):
+                temp = i
+                if self.court[i][j] == 1:
+                    blackWinCnt += 1
+                    whiteWinCount = 0
+                    if i > 0:
+                        i -= 1
+                    elif i == 0 and blackWinCnt < 5:
+                        return "Nothing"
+                elif self.court[i][j] == 0:
+                    whiteWinCount += 1
+                    blackWinCnt = 0
+                    if i > 0:
+                        i -= 1
+                    elif i == 0 and whiteWinCount < 5:
+                        return "Nothing"
+                else: 
+                    blackWinCnt = 0
+                    whiteWinCount = 0
+                if blackWinCnt == 5:
+                    return "Black wins"
+                elif whiteWinCount == 5:
+                    return "White wins"
+                i = temp
+                
 class Chess:
 
     def __init__(self,surface,center,color):
@@ -100,10 +159,64 @@ class Chess:
         self.color = color
         self.radius = 10
 
-class rivalBot:
+class RivalBot:
 
-    def __init__(self) -> None:
+    def __init__(self):
         self.locationScore = 0
+        self.maxScore = 0
+        self.locationX = -1
+        self.locationY = -1
     
-    # def findLocation(self):
-        
+    def findLocation(self,nowCourt):
+        perfectX = -1
+        perfectY = -1
+        self.locationScore = 0
+        self.maxScore = 0
+        for i in range(0,15):
+            for j in range(0,15):
+                self.locationX = i
+                self.locationY = j
+                if nowCourt[self.locationX][self.locationY] == 1 or nowCourt[self.locationX][self.locationY] == 0:
+                    continue
+                else:
+                    self.locationScore = self.calculateScore([self.locationX,self.locationY],nowCourt)
+                    if self.locationScore > self.maxScore:
+                        self.maxScore = self.locationScore
+                        perfectX = i
+                        perfectY = j
+
+        realPos = (100 + 30*perfectX,100 + 30*perfectY)
+        self.locationX = perfectX
+        self.locationY = perfectY
+        return realPos
+
+    def displayChess(self,pos,gameScreen,color,nowCourt):
+        # Display chess
+
+        pygame.draw.rect(gameScreen, Gobang().backgroundColor, pygame.Rect(500,10,180,60))
+        posText = pygame.font.SysFont(None, 30)
+        tempStr = ""
+        tempStr += str(pos[0]) + "," + str(pos[1])
+        print(pos[0],pos[1])
+        renderedTitle = posText.render(tempStr,True,(0,0,0))
+        gameScreen.blit(renderedTitle,(500,10))
+
+        newChess = Chess(gameScreen,pos,color)
+        pygame.draw.circle(newChess.surface, newChess.color, newChess.center, newChess.radius)
+        if color == (0,0,0):
+            nowCourt[self.locationX][self.locationY] = 1
+        else:
+            nowCourt[self.locationX][self.locationY] = 0
+        pygame.display.update()
+
+    def calculateScore(self,pos,nowCourt):
+        score = 0
+        for i in range(pos[0]-1,pos[0]+1):
+            score += 100
+            for j in range(pos[1]-1,pos[1]+1):
+                if nowCourt[i][j] == 0:
+                    if i != pos[0] and j != pos[1]: 
+                        score += 1
+                elif nowCourt[i][j] == 1:
+                    score += 2
+        return score
