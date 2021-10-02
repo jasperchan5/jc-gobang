@@ -1,5 +1,6 @@
 import numpy as np
 import random as rd
+import math 
 import pygame
 class Gobang:
     # Initialize the court
@@ -33,7 +34,6 @@ class Gobang:
             posList = [pos[0],pos[1]]
             coord = self.posAdjustment(posList)
             pos = (posList[0],posList[1])
-
 
             # Display chess
             newChess = Chess(gameScreen,pos,color)
@@ -211,12 +211,19 @@ class RivalBot:
 
     def calculateScore(self,pos,nowCourt):
         score = 0
-        for i in range(pos[0]-1,pos[0]+1):
+        # Case row
+        for i in range(0,15):
             score += 100
-            for j in range(pos[1]-1,pos[1]+1):
-                if nowCourt[i][j] == 0:
-                    if i != pos[0] and j != pos[1]: 
-                        score += 1
-                elif nowCourt[i][j] == 1:
-                    score += 2
+            blackCnt = 0
+            whiteCnt = 0
+            for j in range(0,15):
+                if i != pos[0] and j != pos[1]:
+                    if nowCourt[i][j] == 0:
+                        blackCnt += 1
+                        whiteCnt = 0
+                        score += (500 - math.sqrt(math.pow(i-pos[0],2) + math.pow(j-pos[1],2))) * (blackCnt + 1)
+                    elif nowCourt[i][j] == 1:
+                        whiteCnt += 1
+                        blackCnt = 0
+                        score += (400 - math.sqrt(math.pow(i-pos[0],2) + math.pow(j-pos[1],2))) * (whiteCnt + 1)
         return score
